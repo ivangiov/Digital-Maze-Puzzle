@@ -1,0 +1,382 @@
+LIBRARY  IEEE; 
+USE  IEEE.STD_LOGIC_1164.ALL; 
+USE  IEEE.STD_LOGIC_ARITH.ALL; 
+USE  IEEE.STD_LOGIC_UNSIGNED.ALL;
+ 
+ENTITY color_rom_vhd  IS 
+	PORT(
+	i_hPos			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	i_vPos			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0); 
+	i_pixel_column  : IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	i_pixel_row     : IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	z				: IN  STD_LOGIC_VECTOR (4 DOWNTO 0);
+	vObs1			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	hObs1			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	vObs2			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	hObs2			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	vObs3			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	hObs3			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	vObs4			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	hObs4			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	vObs5			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	hObs5			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	vObs6			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	hObs6			: IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
+	
+	o_red           : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+	o_green         : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+	o_blue          : OUT STD_LOGIC_VECTOR (7 DOWNTO 0));
+END color_rom_vhd; 
+
+ARCHITECTURE behavioral OF color_rom_vhd  IS 
+
+SIGNAL r_life1   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+SIGNAL g_life1   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+SIGNAL b_life1   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+SIGNAL r_life2   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+SIGNAL g_life2   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+SIGNAL b_life2   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+SIGNAL r_life3   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+SIGNAL g_life3   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+SIGNAL b_life3   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+CONSTANT r_panel   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "00000000";
+CONSTANT g_panel  	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "11111111";
+CONSTANT b_panel   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "00000000";
+CONSTANT r_pnshdw  	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "00000000";
+CONSTANT g_pnshdw 	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "00000000";
+CONSTANT b_pnshdw   : STD_LOGIC_VECTOR (7 DOWNTO 0)	:= "00000000";
+CONSTANT r_grid   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= X"F2";
+CONSTANT g_grid		: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= X"F2";
+CONSTANT b_grid   	: STD_LOGIC_VECTOR (7 DOWNTO 0)	:= X"F2";
+
+
+SIGNAL grid         : STD_LOGIC; 
+
+BEGIN 
+
+PROCESS(i_pixel_row,i_pixel_column, i_vPos, i_hPos,z, vObs1,vObs2,vObs3,vObs4,vObs5,vObs6, hObs1,hObs2,hObs3,hObs4,hObs5,hObs6)
+BEGIN
+
+	
+
+	--INITIAL
+	IF z = "00000" THEN
+		IF (i_pixel_row >= 80 AND i_pixel_row <= 240) AND
+		--M
+		((i_pixel_column >= 120 AND i_pixel_column <= 140) 
+		OR (i_pixel_column >= 200 AND i_pixel_column <= 220) 
+		OR (i_pixel_column >= 160 AND i_pixel_column <= 180 AND i_pixel_row <= 180)
+		OR (i_pixel_column >= 120 AND i_pixel_column <=220 AND i_pixel_row <= 100)
+		
+		--A
+		OR (i_pixel_column >= 240 AND i_pixel_column <= 260)
+		OR (i_pixel_column >= 300 AND i_pixel_column <= 320)
+		OR (i_pixel_column >= 240 AND i_pixel_column <= 320 AND i_pixel_row <= 100)
+		OR (i_pixel_column >= 240 AND i_pixel_column <= 320 AND i_pixel_row >= 160 AND i_pixel_row <= 180)
+		
+		--Z
+		OR (i_pixel_column >= 340 AND i_pixel_column <= 420 AND i_pixel_row <= 100)
+		OR (i_pixel_column >= 340 AND i_pixel_column <= 420 AND i_pixel_row >= 160 AND i_pixel_row <= 180)
+		OR (i_pixel_column >= 340 AND i_pixel_column <= 420 AND i_pixel_row >= 220)
+		OR (i_pixel_column >= 400 AND i_pixel_column <= 420 AND i_pixel_row <= 180)
+		OR (i_pixel_column >= 340 AND i_pixel_column <= 360 AND i_pixel_row >= 160)
+		
+		--E
+		OR (i_pixel_column >= 440 AND i_pixel_column <= 460)
+		OR (i_pixel_column >= 460 AND i_pixel_column <= 520 AND i_pixel_row <= 100)
+		OR (i_pixel_column >= 460 AND i_pixel_column <= 510 AND i_pixel_row >= 160 AND i_pixel_row <= 180)
+		OR (i_pixel_column >= 460 AND i_pixel_column <= 520 AND i_pixel_row >= 220))
+		
+		THEN
+			o_red <= "00000000"; o_green <="00011000"; o_blue <= "00010000";
+
+
+		ELSIF (i_pixel_row >= 280 AND i_pixel_row <= 380) AND
+		--P
+		((i_pixel_column >= 90 AND i_pixel_column <=110) 
+		OR (i_pixel_column >= 130 AND i_pixel_column <= 150 AND i_pixel_row >= 300 AND i_pixel_row <= 320) 
+		OR (i_pixel_column >= 110 AND i_pixel_column <= 150 AND i_pixel_row <= 300)
+		OR (i_pixel_column >= 110 AND i_pixel_column <= 150 AND i_pixel_row >= 320 AND i_pixel_row <= 340)
+
+		--U
+		OR (i_pixel_column >= 170 AND i_pixel_column <= 190)
+		OR (i_pixel_column >= 210 AND i_pixel_column <= 230)
+		OR (i_pixel_column >= 190 AND i_pixel_column <= 210 AND i_pixel_row >= 360)
+		
+		--Z
+		OR (i_pixel_column >= 250 AND i_pixel_column <= 310 AND i_pixel_row <= 300)
+		OR (i_pixel_column >= 250 AND i_pixel_column <= 310 AND i_pixel_row >= 320 AND i_pixel_row <= 340)
+		OR (i_pixel_column >= 250 AND i_pixel_column <= 310 AND i_pixel_row >= 360)
+		OR (i_pixel_column >= 290 AND i_pixel_column <= 310 AND i_pixel_row <= 340)
+		OR (i_pixel_column >= 250 AND i_pixel_column <= 270 AND i_pixel_row >= 320)
+		
+		--Z
+		OR (i_pixel_column >= 330 AND i_pixel_column <= 390 AND i_pixel_row <= 300)
+		OR (i_pixel_column >= 330 AND i_pixel_column <= 390 AND i_pixel_row >= 320 AND i_pixel_row <= 340)
+		OR (i_pixel_column >= 330 AND i_pixel_column <= 390 AND i_pixel_row >= 360)
+		OR (i_pixel_column >= 370 AND i_pixel_column <= 390 AND i_pixel_row <= 340)
+		OR (i_pixel_column >= 330 AND i_pixel_column <= 350 AND i_pixel_row >= 320)
+		
+		--L
+		OR (i_pixel_column >= 410 AND i_pixel_column <= 430)
+		OR (i_pixel_column >= 430 AND i_pixel_column <= 470 AND i_pixel_row >= 360)
+		
+		--E
+		OR (i_pixel_column >= 490 AND i_pixel_column <= 510)
+		OR (i_pixel_column >= 510 AND i_pixel_column <= 550 AND i_pixel_row <= 300)
+		OR (i_pixel_column >= 510 AND i_pixel_column <= 540 AND i_pixel_row >= 320 AND i_pixel_row <= 340)
+		OR (i_pixel_column >= 510 AND i_pixel_column <= 550 AND i_pixel_row >= 360))
+		
+		THEN
+			o_red <= "00000000"; o_green <="00011000"; o_blue <= "00010000";
+		
+		--BACKGROUND
+		ELSE 
+			o_red <= "00000000"; o_green <="00000000"; o_blue <= "00000000";
+		END IF;
+
+	--START/MOVE
+	ELSIF (z = "00001" OR z = "10001" OR z = "11010" OR z = "00011" OR z = "10011" OR z = "11011") THEN
+		--PANEL
+		IF (i_pixel_row <= 40) THEN
+			IF (i_pixel_row >= 10 AND i_pixel_row <= 35) THEN
+				--LIFES
+				IF z = "00001" OR z = "00011" THEN
+					r_life1 <= X"99";
+					g_life1 <= X"00";
+					b_life1 <= X"00";
+					r_life2 <= X"99";
+					g_life2 <= X"00";
+					b_life2 <= X"00";
+					r_life3 <= X"99";
+					g_life3 <= X"00";
+					b_life3 <= X"00";		
+				ELSIF z = "10001" OR z = "10011" THEN
+					r_life1 <= X"99";
+					g_life1 <= X"00";
+					b_life1 <= X"00";
+					r_life2 <= X"99";
+					g_life2 <= X"00";
+					b_life2 <= X"00";
+					r_life3 <= X"00";
+					g_life3 <= X"00";
+					b_life3 <= X"00";
+				ELSIF z = "11001" OR z = "11011" THEN
+					r_life1 <= X"99";
+					g_life1 <= X"00";
+					b_life1 <= X"00";
+					r_life2 <= X"00";
+					g_life2 <= X"00";
+					b_life2 <= X"00";
+					r_life3 <= X"00";
+					g_life3 <= X"00";
+					b_life3 <= X"00";
+				END IF;
+				--LIFES
+				IF (i_pixel_column >= 590 AND i_pixel_column <= 600) THEN
+					o_red <= r_life1; o_green <= g_life1; o_blue <= b_life1;
+				ELSIF (i_pixel_column >= 605 AND i_pixel_column <= 615)THEN
+					o_red <= r_life2; o_green <= g_life2; o_blue <= b_life2;
+				ELSIF (i_pixel_column >= 620 AND i_pixel_column <= 630)THEN
+					o_red <= r_life3; o_green <= g_life3; o_blue <= b_life3;
+					
+					
+				--TULISAN MAZE
+				ELSIF (i_pixel_column >= 10 AND i_pixel_column <= 15) OR
+					--M
+					((i_pixel_column >= 15 AND i_pixel_column <= 28 AND i_pixel_row <= 15)
+					OR (i_pixel_column >= 19 AND i_pixel_column <= 24 AND i_pixel_row <= 30)
+					OR (i_pixel_column >= 28 AND i_pixel_column <= 33)
+					
+					--A
+					OR (i_pixel_column >= 43 AND i_pixel_column <= 48)
+					OR (i_pixel_column >= 53 AND i_pixel_column <= 58)
+					OR (i_pixel_column >= 48 AND i_pixel_column <= 53 AND i_pixel_row <= 15)
+					OR (i_pixel_column >= 48 AND i_pixel_column <= 53 AND i_pixel_row >= 25 AND i_pixel_row <= 30)
+					
+					--Z
+					OR (i_pixel_column >= 68 AND i_pixel_column <= 83 AND i_pixel_row <= 15)
+					OR (i_pixel_column >= 68 AND i_pixel_column <= 83 AND i_pixel_row >= 20 AND i_pixel_row <= 25)
+					OR (i_pixel_column >= 68 AND i_pixel_column <= 83 AND i_pixel_row >= 30)
+					OR (i_pixel_column >= 78 AND i_pixel_column <= 83 AND i_pixel_row <= 25)
+					OR (i_pixel_column >= 68 AND i_pixel_column <= 73 AND i_pixel_row >= 20)
+					
+					--E
+					OR (i_pixel_column >= 93 AND i_pixel_column <= 98)
+					OR (i_pixel_column >= 98 AND i_pixel_column <= 108 AND i_pixel_row <= 15)
+					OR (i_pixel_column >= 98 AND i_pixel_column <= 108 AND i_pixel_row >= 20 AND i_pixel_row <= 25)
+					OR (i_pixel_column >= 98 AND i_pixel_column <= 108 AND i_pixel_row >= 30))
+
+					
+					THEN
+					o_red <= "00000000"; o_green <="00011000"; o_blue <= "00010000";
+
+				ELSE
+					o_red <= r_panel; o_green <= g_panel; o_blue <= b_panel;
+				END IF;
+			ELSE
+				o_red <= r_panel; o_green <= g_panel; o_blue <= b_panel;
+			END IF;
+		
+		--BATAS PANEL
+		ELSIF (i_pixel_row > 40 AND i_pixel_row <= 44) THEN
+		o_red <= r_pnshdw; o_green <= g_pnshdw; o_blue <= b_pnshdw;
+
+		--TEMBOK
+		ELSIF (i_pixel_row >= 180 AND i_pixel_row <= 194 AND i_pixel_column <= 504) 
+		OR (i_pixel_row >= 330 AND i_pixel_row <= 344 AND i_pixel_column >= 136) THEN
+		o_red <= "00000000"; o_green <= "00000000"; o_blue <= "00000000";
+		
+		--FINISH AREA
+		ELSIF i_pixel_row >= 345 THEN
+			IF (i_pixel_column >= 540 AND i_pixel_column <= 580 AND i_pixel_row <= 400) THEN
+			o_red <= X"FF"; o_green <= X"FF"; o_blue <= X"99";
+			
+			ELSIF (i_pixel_row >= 360 AND i_pixel_row <= 460 AND (
+			--F
+			(i_pixel_column >= 40 AND i_pixel_column <= 60)
+			OR (i_pixel_column >= 60 AND i_pixel_column <= 120 AND i_pixel_row <= 380)
+			OR (i_pixel_column >= 60 AND i_pixel_column <= 100 AND i_pixel_row >= 400 AND i_pixel_row <= 420)
+
+			--I
+			OR (i_pixel_column >= 140 AND i_pixel_column <= 160)
+
+			--N
+			OR (i_pixel_column >= 200 AND i_pixel_column <= 220)
+			OR (i_pixel_column >= 220 AND i_pixel_column <= 240 AND i_pixel_row <= 400)
+			OR (i_pixel_column >= 240 AND i_pixel_column <= 260 AND i_pixel_row >= 380 AND i_pixel_row <= 440)
+			OR (i_pixel_column >= 260 AND i_pixel_column <= 280 AND i_pixel_row >= 420)
+			OR (i_pixel_column >= 280 AND i_pixel_column <= 300)
+
+			--I
+			OR (i_pixel_column >= 340 AND i_pixel_column <= 360)
+			
+			--S
+			OR (i_pixel_column >= 400 AND i_pixel_column <= 480 AND i_pixel_row <= 380)
+			OR (i_pixel_column >= 400 AND i_pixel_column <= 480 AND i_pixel_row >= 400 AND i_pixel_row <= 420)
+			OR (i_pixel_column >= 400 AND i_pixel_column <= 480 AND i_pixel_row >= 440)
+			OR (i_pixel_column >= 400 AND i_pixel_column <= 420 AND i_pixel_row <= 420)
+			OR (i_pixel_column >= 460 AND i_pixel_column <= 480 AND i_pixel_row >= 400)
+			
+			--H
+			OR (i_pixel_column >= 520 AND i_pixel_column <= 540)
+			OR (i_pixel_column >= 540 AND i_pixel_column <= 580 AND i_pixel_row <= 420)
+			OR (i_pixel_column >= 580 AND i_pixel_column <= 600)
+			
+			)) THEN
+			o_red <= X"4D"; o_green <= X"4D"; o_blue <= X"00";
+			
+			
+			ELSE 
+			o_red <= X"FF"; o_green <= X"FF"; o_blue <= X"99";
+			END IF;
+		--OBSTACLE
+		ELSIF (i_pixel_row >= vObs1 AND i_pixel_row <= vObs1+50 AND i_pixel_column >= hObs1 AND i_pixel_column <= hObs1+50)
+		OR  (i_pixel_row >= vObs2 AND i_pixel_row <= vObs2+50 AND i_pixel_column >= hObs2 AND i_pixel_column <= hObs2+50)
+		OR  (i_pixel_row >= vObs3 AND i_pixel_row <= vObs3+33 AND i_pixel_column >= hObs3 AND i_pixel_column <= hObs3+33)
+		OR  (i_pixel_row >= vObs4 AND i_pixel_row <= vObs4+33 AND i_pixel_column >= hObs4 AND i_pixel_column <= hObs4+33)
+		OR  (i_pixel_row >= vObs5 AND i_pixel_row <= vObs5+33 AND i_pixel_column >= hObs5 AND i_pixel_column <= hObs5+33)
+		OR  (i_pixel_row >= vObs6 AND i_pixel_row <= vObs6+33 AND i_pixel_column >= hObs6 AND i_pixel_column <= hObs6+33)
+		
+		THEN
+		o_red <= "11111111"; o_green <= "00000000"; o_blue <= "00000000";
+		
+		--OBJEK PERMAINAN
+		ELSIF (i_pixel_row >= i_vPos AND i_pixel_row <= (i_vPos + 33) AND i_pixel_column >= i_hPos AND i_pixel_column <= (i_hPos + 33) ) THEN  
+			o_red <= "00000000"; o_green <= "00000000"; o_blue <= "11111111";
+			
+		--LATAR
+		ELSE  
+		o_red <= r_grid; o_green <= g_grid; o_blue <= b_grid;
+		END IF;
+	
+	--FINISH	
+	ELSIF z = "11111" THEN 
+		IF (i_pixel_row >= 140 AND i_pixel_row <= 340) AND
+		--Y
+		((i_pixel_column >= 50 AND i_pixel_column <= 70 AND i_pixel_row <= 240) 
+		OR (i_pixel_column >= 70 AND i_pixel_column <= 90 AND i_pixel_row >= 240) 
+		OR (i_pixel_column >= 90 AND i_pixel_column <= 110 AND i_pixel_row <= 240)
+		
+		--O
+		OR (i_pixel_column >= 130 AND i_pixel_column <= 150) 
+		OR (i_pixel_column >= 150 AND i_pixel_column <= 170 AND i_pixel_row <= 160)
+		OR (i_pixel_column >= 150 AND i_pixel_column <= 170 AND i_pixel_row >= 320)
+		OR (i_pixel_column >= 170 AND i_pixel_column <= 190) 
+		
+		--U
+		OR (i_pixel_column >= 210 AND i_pixel_column <= 230) 
+		OR (i_pixel_column >= 250 AND i_pixel_column <= 270) 
+		OR (i_pixel_column >= 230 AND i_pixel_column <= 250 AND i_pixel_row >= 320)
+		
+		--W
+		OR (i_pixel_column >= 330 AND i_pixel_column <= 350) 
+		OR (i_pixel_column >= 370 AND i_pixel_column <= 390 AND i_pixel_row >= 220)
+		OR (i_pixel_column >= 410 AND i_pixel_column <= 430) 
+		OR (i_pixel_column >= 350 AND i_pixel_column <= 410 AND i_pixel_row >= 320)
+
+		--I
+		OR (i_pixel_column >= 450 AND i_pixel_column <= 470)
+		
+		--N
+		OR (i_pixel_column >= 490 AND i_pixel_column <= 510)
+		OR (i_pixel_column >= 510 AND i_pixel_column <= 530 AND i_pixel_row >= 160 AND i_pixel_row <= 200)
+		OR (i_pixel_column >= 530 AND i_pixel_column <= 550 AND i_pixel_row >= 180 AND i_pixel_row <= 300)
+		OR (i_pixel_column >= 550 AND i_pixel_column <= 570 AND i_pixel_row >= 280 AND i_pixel_row <= 320)
+		OR (i_pixel_column >= 570 AND i_pixel_column <= 590))
+		THEN
+			o_red <= "00000000"; o_green <="00011000"; o_blue <= "00010000";
+		ELSE
+			o_red <= "11111111"; o_green <="11111111"; o_blue <= "11111111";
+		END IF;	
+	--FAIL	
+	ELSIF z = "00100" THEN 
+		IF (((i_pixel_row >= 140 AND i_pixel_row <= 340) AND
+		--N
+		((i_pixel_column >= 60 AND i_pixel_column <= 80)
+		OR (i_pixel_column >= 80 AND i_pixel_column <= 100 AND i_pixel_row <= 180)
+		OR (i_pixel_column >= 100 AND i_pixel_column <= 120 AND i_pixel_row >= 180 AND i_pixel_row <= 240)
+		OR (i_pixel_column >= 120 AND i_pixel_column <= 140 AND i_pixel_row >= 240 AND i_pixel_row <= 300)
+		OR (i_pixel_column >= 140 AND i_pixel_column <= 160 AND i_pixel_row >= 300)
+		OR (i_pixel_column >= 160 AND i_pixel_column <= 180)
+		
+		--O
+		OR (i_pixel_column >= 200 AND i_pixel_column <= 220)
+		OR (i_pixel_column >= 220 AND i_pixel_column <= 260 AND i_pixel_row <= 160)
+		OR (i_pixel_column >= 220 AND i_pixel_column <= 260 AND i_pixel_row >= 320)
+		OR (i_pixel_column >= 260 AND i_pixel_column <= 280)
+		
+		--O
+		OR (i_pixel_column >= 300 AND i_pixel_column <= 320) 
+		OR (i_pixel_column >= 320 AND i_pixel_column <= 360 AND i_pixel_row <= 160)
+		OR (i_pixel_column >= 320 AND i_pixel_column <= 360 AND i_pixel_row >= 320)
+		OR (i_pixel_column >= 360 AND i_pixel_column <= 380)
+		
+		--B
+		OR (i_pixel_column >= 400 AND i_pixel_column <= 420) 
+		OR (i_pixel_column >= 420 AND i_pixel_column <= 480 AND i_pixel_row <= 160)
+		OR (i_pixel_column >= 420 AND i_pixel_column <= 480 AND i_pixel_row >= 240 AND i_pixel_row <= 260)
+		OR (i_pixel_column >= 420 AND i_pixel_column <= 480 AND i_pixel_row >= 320)
+		OR (i_pixel_column >= 480 AND i_pixel_column <= 500 AND i_pixel_row >= 160 AND i_pixel_row <= 240)
+		OR (i_pixel_column >= 480 AND i_pixel_column <= 500 AND i_pixel_row >= 260 AND i_pixel_row <= 320)
+
+		--!
+		OR (i_pixel_column >= 560 AND i_pixel_column <= 580 AND i_pixel_row <= 300)
+		OR (i_pixel_column >= 560 AND i_pixel_column <= 580 AND i_pixel_row >= 320)))
+		
+		--LINES
+		OR (i_pixel_row >= 40 AND i_pixel_row <= 60)
+		OR (i_pixel_row >= 80 AND i_pixel_row <= 100)
+		OR (i_pixel_row >= 380 AND i_pixel_row <= 400)
+		OR (i_pixel_row >= 420 AND i_pixel_row <= 440))
+		
+		THEN
+			o_red <= "11111111"; o_green <="00000000"; o_blue <= "00000000";
+		ELSE
+			o_red <= X"10"; o_green <=X"11"; o_blue <= X"11";
+		END IF;
+	END IF;
+
+END PROCESS;
+
+END behavioral; 

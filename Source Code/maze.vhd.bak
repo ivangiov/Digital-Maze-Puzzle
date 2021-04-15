@@ -1,0 +1,94 @@
+LIBRARY  IEEE; 
+USE  IEEE.STD_LOGIC_1164.ALL; 
+USE  IEEE.STD_LOGIC_ARITH.ALL; 
+USE  IEEE.STD_LOGIC_UNSIGNED.ALL;
+ 
+ENTITY maze IS 
+	PORT(
+	i_clk			: IN  STD_LOGIC; 
+	skip			: IN  STD_LOGIC; 
+	reset			: IN  STD_LOGIC;
+	finish			: IN  STD_LOGIC;
+	hit_obstacle	: IN STD_LOGIC;
+	z				: OUT STD_LOGIC_VECTOR( 4 DOWNTO 0 );
+	resetcounter	: OUT STD_LOGIC);
+END maze; 
+
+ARCHITECTURE FSM OF maze IS 
+
+TYPE state_type IS (initial, start, move, win, fail, re_set); 
+signal state		: state_type;
+signal dies			: STD_LOGIC_VECTOR (1 DOWNTO 0) := "00";
+
+BEGIN 
+
+PROCESS(i_clk,skip,reset)
+BEGIN
+	IF reset = '1' THEN
+		state <= initial;
+		dies <= "00";
+	ELSIF rising_edge(i_clk) THEN
+		CASE state IS
+			WHEN initial =>
+					state <= start;
+				
+			WHEN start =>
+				IF dies < 3 THEN
+					state <= move;
+				ELSE
+					state <= fail;
+				END IF;
+			WHEN move =>
+				IF (hit_obstacle = '1') THEN
+					state <= re_set;
+				ELSIF (finish = '1') THEN
+					state <= win;
+				ELSE
+					state <= move;			
+				END IF;
+			WHEN win =>
+				state <= win;
+				IF (skip = '0') THEN
+					state <= initial;
+				END IF;
+			WHEN fail =>
+				state <= fail;
+				IF (skip = '0') THEN
+					state <= initial;
+				END IF;
+			WHEN re_set =>
+				dies <= dies + 1;
+				state <= start;
+				
+		END CASE;
+	END IF;
+END PROCESS;
+
+PROCESS (state, dies)
+	BEGIN
+		IF state = initial THEN
+			z <= "00000";
+		ELSIF state = start AND dies = 0 THEN
+			z <= "00001";
+			resetcounter <= '0';
+		ELSIF state = start AND dies = 1 THEN
+			z <= "10001";
+			resetcounter <= '0';
+		ELSIF state = start AND dies = 2 THEN
+			z <= "11010";
+			resetcounter <= '0';
+		ELSIF state = move AND dies = 0 THEN
+			z <= "00011";
+		ELSIF state = move AND dies = 1 THEN
+			z <= "10011";
+		ELSIF state = move AND dies = 2 THEN
+			z <= "11011";
+		ELSIF state = win THEN
+			z <= "11111";
+		ELSIF state = fail THEN
+			z <= "00100";
+		ELSIF state = re_set THEN
+			resetcounter <= '1';
+		END IF;
+	END PROCESS;
+END FSM;
